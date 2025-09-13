@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Cricket Scorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'cricket-green': '#28a745',
+              'cricket-dark': '#1a202c',
+              'cricket-gray': '#2d3748',
+              'cricket-light-gray': '#4a5568',
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-out forwards',
+              'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+              'pulse-green': 'pulse-green 0.7s ease-out',
+              'pulse-red': 'pulse-red 0.7s ease-out',
+              'pop-in': 'pop-in 0.3s ease-out forwards',
+              'fill-bar': 'fill-bar 1s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+            },
+            keyframes: {
+              'fade-in': {
+                'from': { opacity: '0' },
+                'to': { opacity: '1' },
+              },
+              'fade-in-up': {
+                'from': { opacity: '0', transform: 'translateY(20px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'pulse-green': {
+                '0%, 100%': { transform: 'scale(1)', color: '#48bb78' },
+                '50%': { transform: 'scale(1.15)', color: '#f0fff4' },
+              },
+              'pulse-red': {
+                '0%, 100%': { transform: 'scale(1)', color: '#f56565' },
+                '50%': { transform: 'scale(1.15)', color: '#fff5f5' },
+              },
+              'pop-in': {
+                '0%': { transform: 'scale(0.5)', opacity: '0' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+              'fill-bar': {
+                  'from': { width: '0%' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.19.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-cricket-dark text-white font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

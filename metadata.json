@@ -1,0 +1,5 @@
+{
+  "name": "Live Cricket Scorer",
+  "description": "A dynamic and modern web application for scoring local cricket matches live. Track ball-by-ball action, view detailed scorecards, and manage match setup with an intuitive interface.",
+  "requestFramePermissions": []
+}
