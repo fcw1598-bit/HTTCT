@@ -135,8 +135,9 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
     if (!match) return;
     
     startTransition(async () => {
+      const currentCommentary = commentaryHistory[historyIndex];
       const { nextState, modal } = updateMatchState(match, { type, runs });
-      let nextCommentary = [...commentary];
+      let nextCommentary = [...currentCommentary];
 
       const lastBall = nextState.innings === 1 ? nextState.firstInnings.timeline.slice(-1)[0] : nextState.secondInnings?.timeline.slice(-1)[0];
       if (lastBall) {
@@ -148,15 +149,15 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
         const geminiText = await generateCommentary(lastBall, nextState);
         const finalCommentary: Commentary = { ...loadingCommentary, text: geminiText, type: 'gemini' };
         
-        // Use the latest history index in case user spams clicks
+        // Use a functional update to get the latest history state
         setCommentaryHistory(prev => {
             const latestHistory = [...prev];
-            const latestCommentary = [...latestHistory[latestHistory.length - 1]];
-            const loadingIndex = latestCommentary.findIndex(c => c.id === loadingCommentary.id);
+            const latestCommentaryForUpdate = [...latestHistory[latestHistory.length - 1]];
+            const loadingIndex = latestCommentaryForUpdate.findIndex(c => c.id === loadingCommentary.id);
             if (loadingIndex > -1) {
-                latestCommentary[loadingIndex] = finalCommentary;
+                latestCommentaryForUpdate[loadingIndex] = finalCommentary;
             }
-            latestHistory[latestHistory.length - 1] = latestCommentary;
+            latestHistory[latestHistory.length - 1] = latestCommentaryForUpdate;
             return latestHistory;
         });
 
@@ -169,7 +170,7 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
         setModalState(modal);
       }
     });
-  }, [match, commentary, generateCommentary, historyIndex, matchHistory, commentaryHistory]);
+  }, [match, generateCommentary, historyIndex, commentaryHistory]);
 
   const handleTossComplete = (wonBy: string, decision: 'bat' | 'bowl') => {
     const battingTeam = (decision === 'bat') ? wonBy : (wonBy === match.teamA.name ? match.teamB.name : match.teamA.name);
@@ -210,7 +211,6 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
         nextState = match;
     }
     
-    // FIX: Explicitly type `newCommentary` to prevent TypeScript from widening the `type` property to `string`.
     const newCommentary: Commentary[] = newSystemCommentary ? [{ id: Date.now(), text: newSystemCommentary, type: 'system'}, ...commentary] : commentary;
     updateHistory(nextState, newCommentary);
     setModalState(null);

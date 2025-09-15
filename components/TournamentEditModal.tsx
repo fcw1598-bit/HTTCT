@@ -86,7 +86,8 @@ const TournamentEditModal: React.FC<TournamentEditModalProps> = ({ tournament, o
                             <div className="space-y-2 p-2 rounded-md bg-cricket-dark h-48 overflow-y-auto">
                                 {selectedTeams.map(t => {
                                     const teamData = allTeams.find(at => at.id === t.id);
-                                    return teamData ? <TeamListItem key={t.id} team={teamData} onToggle={handleTeamToggle} isSelected /> : null;
+                                    if (!teamData) return null; // Defensive check
+                                    return <TeamListItem key={t.id} team={teamData} onToggle={handleTeamToggle} isSelected />;
                                 })}
                             </div>
                         </div>

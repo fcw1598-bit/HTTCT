@@ -1,4 +1,3 @@
-// FIX: Removed self-import of 'PlayerProfile' which caused a conflict with the local declaration.
 export type PlayerRole = 'Batsman' | 'Bowler' | 'All-Rounder' | 'Wicket-Keeper';
 export type CommentaryStyle = 'Enthusiastic' | 'Humorous' | 'Technical' | 'Analytical';
 

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import type { Tournament, Match, Team, TeamStanding, TournamentFormat } from '../types';
 import { getTournaments, saveTournaments, getRegisteredTeams, getMatchHistory } from '../utils/storage';
 import { calculateStandings, generateInitialRound, advanceToNextRound } from '../utils/tournament';
@@ -26,24 +27,31 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onStartMatch 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
 
-    const loadData = useCallback(() => {
-        setAllTeams(getRegisteredTeams());
+    // Effect to load all data from storage when the component mounts.
+    useEffect(() => {
+        const teams = getRegisteredTeams();
         const matchHistory = getMatchHistory();
-        setAllMatches(matchHistory);
         const savedTournaments = getTournaments();
+
+        setAllTeams(teams);
+        setAllMatches(matchHistory);
+        
         const updatedTournaments = savedTournaments.map(t => 
             t.status !== 'Upcoming' ? calculateStandings(t, matchHistory) : t
         );
         setTournaments(updatedTournaments);
+    }, []);
 
-        if (updatedTournaments.length > 0 && !selectedTournamentId) {
-            setSelectedTournamentId(updatedTournaments[0].id);
-        }
-    }, [selectedTournamentId]);
-
+    // Effect to manage the selection logic. Runs when tournaments list changes.
     useEffect(() => {
-        loadData();
-    }, [loadData]);
+        const currentSelectionIsValid = tournaments.some(t => t.id === selectedTournamentId);
+
+        if (!currentSelectionIsValid && tournaments.length > 0) {
+            setSelectedTournamentId(tournaments[0].id);
+        } else if (tournaments.length === 0) {
+            setSelectedTournamentId(null);
+        }
+    }, [tournaments, selectedTournamentId]);
     
     const selectedTournament = useMemo(() => {
         return tournaments.find(t => t.id === selectedTournamentId) || null;
@@ -51,9 +59,10 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onStartMatch 
 
     const handleSaveTournament = (tournamentData: Omit<Tournament, 'id' | 'status' | 'rounds' | 'currentRound' | 'standings'> & { id?: string }) => {
         let updatedTournaments;
+        const matchHistory = getMatchHistory(); // Re-fetch for standings calculation
         if (tournamentData.id) { // Editing
              updatedTournaments = tournaments.map(t => 
-                t.id === tournamentData.id ? { ...t, ...tournamentData } : t
+                t.id === tournamentData.id ? calculateStandings({ ...t, ...tournamentData }, matchHistory) : t
             );
         } else { // Creating
             const newTournament: Tournament = {
@@ -98,13 +107,16 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onStartMatch 
     const handleAdvanceRound = (tournamentId: string) => {
         const tournamentToAdvance = tournaments.find(t => t.id === tournamentId);
         if (!tournamentToAdvance) return;
-
-        const advancedTournament = advanceToNextRound(tournamentToAdvance, allMatches);
-        if (advancedTournament.status === 'Finished') {
-            alert(`${advancedTournament.standings[0]?.teamName || 'Winner'} has won the tournament!`);
+        const matchHistory = getMatchHistory(); // Get latest matches
+        const advancedTournament = advanceToNextRound(tournamentToAdvance, matchHistory);
+        if (advancedTournament.status === 'Finished' && advancedTournament.rounds.length > 0) {
+             const finalRoundWinners = advancedTournament.rounds[advancedTournament.rounds.length - 2].matchIds
+                .map(id => matchHistory.find(m => m.id === id)?.winner)
+                .filter(Boolean);
+            alert(`${finalRoundWinners[0] || 'Winner'} has won the tournament!`);
         }
         
-        const updatedTournaments = tournaments.map(t => t.id === tournamentId ? advancedTournament : t);
+        const updatedTournaments = tournaments.map(t => t.id === tournamentId ? calculateStandings(advancedTournament, matchHistory) : t);
         saveTournaments(updatedTournaments);
         setTournaments(updatedTournaments);
     }
@@ -286,7 +298,7 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({ tournament, allTe
                         })}
                     </div>
 
-                    {/* FIX: Removed redundant `tournament.status !== 'Finished'` check which is always true inside this block and can cause type errors. */}
+                    {/* FIX: Removed redundant `tournament.status !== 'Finished'` check. The outer condition `tournament.status === 'In Progress'` already ensures this. */}
                     {isRoundComplete && tournament.type === 'Knockout' && (
                         <div className="text-center mt-6">
                             <button onClick={() => onAdvanceRound(tournament.id)} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-500 transition">
@@ -301,7 +313,7 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({ tournament, allTe
                  <div className="text-center bg-cricket-light-gray p-6 rounded-lg">
                     <TrophyIcon className="w-16 h-16 mx-auto text-yellow-400 mb-4" />
                     <h3 className="text-2xl font-semibold mb-2">Tournament Finished!</h3>
-                    <p className="text-gray-300 text-lg">Winner: <span className="font-bold text-cricket-green">{tournament.standings[0]?.teamName || 'N/A'}</span></p>
+                    <p className="text-gray-300 text-lg">Winner: <span className="font-bold text-cricket-green">{tournament.standings.find(s => s.won === tournament.rounds.length)?.teamName || tournament.teams.find(t => t.id === allMatches.find(m => m.id === tournament.rounds[tournament.rounds.length - 1].matchIds[0])?.winner)?.name || 'N/A'}</span></p>
                 </div>
             )}
         </div>
