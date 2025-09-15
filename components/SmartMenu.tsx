@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Match } from '../types';
 
@@ -61,6 +62,7 @@ const SmartMenu: React.FC<SmartMenuProps> = ({ activeView, setActiveView, curren
                              <button
                                 onClick={() => setActiveView(view)}
                                 title={label}
+                                aria-label={label}
                                 className="flex items-center justify-center p-3 rounded-full transition-colors duration-200"
                             >
                                 <Icon className={`w-6 h-6 transition-colors ${isActive ? 'text-white' : 'text-gray-300 group-hover:text-white'}`} />

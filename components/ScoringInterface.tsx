@@ -331,11 +331,16 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
                         <ColorSwatchIcon className="w-6 h-6" />
                         AI Commentary Style
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    {!ai && (
+                        <div className="bg-yellow-900/50 border border-yellow-700 text-yellow-300 text-xs rounded-md p-2 mb-4 text-center">
+                            AI features are disabled. API key is not configured in the environment.
+                        </div>
+                    )}
+                    <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 ${!ai ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       {(['Enthusiastic', 'Humorous', 'Technical', 'Analytical'] as CommentaryStyle[]).map(style => {
                         const Logo = { Enthusiastic: EnthusiasticLogo, Humorous: HumorousLogo, Technical: TechnicalLogo, Analytical: AnalyticalLogo }[style];
                         return (
-                          <button key={style} onClick={() => setCommentaryStyle(style)} className={`p-2 rounded-lg transition-all transform hover:scale-105 ${commentaryStyle === style ? 'bg-cricket-green ring-2 ring-white' : 'bg-cricket-light-gray'}`}>
+                          <button key={style} onClick={() => setCommentaryStyle(style)} disabled={!ai} className={`p-2 rounded-lg transition-all transform hover:scale-105 ${commentaryStyle === style ? 'bg-cricket-green ring-2 ring-white' : 'bg-cricket-light-gray'}`}>
                             <Logo className="w-12 h-12 mx-auto" />
                             <p className="text-xs mt-2 font-semibold">{style}</p>
                           </button>
@@ -351,7 +356,8 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
                             placeholder="Custom keywords (e.g., tense moment, great shot)"
                             value={customKeywords}
                             onChange={(e) => setCustomKeywords(e.target.value)}
-                            className="w-full bg-cricket-light-gray border border-gray-600 rounded-md p-2 pl-10 focus:ring-1 focus:ring-cricket-green text-sm"
+                            disabled={!ai}
+                            className="w-full bg-cricket-light-gray border border-gray-600 rounded-md p-2 pl-10 focus:ring-1 focus:ring-cricket-green text-sm disabled:opacity-50"
                         />
                     </div>
                 </div>

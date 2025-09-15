@@ -107,12 +107,16 @@ const TournamentEditModal: React.FC<TournamentEditModalProps> = ({ tournament, o
 };
 
 const TeamListItem: React.FC<{ team: Team, onToggle: (team: Team) => void, isSelected: boolean }> = ({ team, onToggle, isSelected }) => (
-    <div onClick={() => onToggle(team)} className={`flex justify-between items-center p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-green-500/20' : 'hover:bg-cricket-light-gray'}`}>
+    <div className={`flex justify-between items-center p-2 rounded-md ${isSelected ? 'bg-green-500/20' : 'hover:bg-cricket-light-gray/50'}`}>
         <div className="flex items-center gap-3">
             {team.logo ? <img src={team.logo} alt={team.name} className="w-8 h-8 rounded-full object-cover" /> : <TeamIcon className="w-8 h-8 text-gray-500" />}
             <p className="font-semibold text-sm">{team.name}</p>
         </div>
-        <button className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-lg ${isSelected ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+        <button
+            onClick={() => onToggle(team)}
+            aria-label={isSelected ? `Remove ${team.name}` : `Add ${team.name}`}
+            className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-lg transition-colors ${isSelected ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-green-600 text-white hover:bg-green-500'}`}
+        >
             {isSelected ? '−' : '+'}
         </button>
     </div>

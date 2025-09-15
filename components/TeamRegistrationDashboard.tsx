@@ -82,7 +82,7 @@ const TeamRegistrationDashboard: React.FC = () => {
                                     <h3 className="text-xl font-bold">{team.name}</h3>
                                     <p className="text-sm text-gray-400">
                                         {team.players.length} player{team.players.length !== 1 ? 's' : ''}
-                                        {(team.players.length < 6 || team.players.length > 15) && <span className="text-yellow-400 ml-2">⚠️</span>}
+                                        {(team.players.length < 6 || team.players.length > 15) && <span className="text-yellow-400 ml-2" title="Team must have between 6 and 15 players">⚠️</span>}
                                     </p>
                                 </div>
                             </div>

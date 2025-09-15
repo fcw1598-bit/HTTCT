@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Team, Player, PlayerProfile, PlayerRole } from '../types';
 import Modal from './Modal';
@@ -236,6 +237,7 @@ const SelectedPlayerItem: React.FC<{player: Player, onRemove: (playerId: string)
         </div>
         <button 
             onClick={() => onRemove(player.id)}
+            aria-label={`Remove ${player.name}`}
             className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-lg bg-red-600 text-white hover:bg-red-500 transition-colors"
         >
             −
@@ -245,10 +247,7 @@ const SelectedPlayerItem: React.FC<{player: Player, onRemove: (playerId: string)
 
 
 const PlayerListItem: React.FC<{profile: PlayerProfile, onAdd: (profile: PlayerProfile) => void}> = ({ profile, onAdd}) => (
-    <div 
-        onClick={() => onAdd(profile)}
-        className="flex justify-between items-center p-2 rounded-md cursor-pointer transition-colors hover:bg-cricket-light-gray"
-    >
+    <div className="flex justify-between items-center p-2 rounded-md transition-colors hover:bg-cricket-light-gray">
         <div className="flex items-center gap-3">
              {profile.photo ? (
                 <img src={profile.photo} alt={profile.name} className="w-8 h-8 rounded-full object-cover"/>
@@ -260,7 +259,11 @@ const PlayerListItem: React.FC<{profile: PlayerProfile, onAdd: (profile: PlayerP
                 <p className="text-xs text-gray-400">{profile.role}</p>
             </div>
         </div>
-        <button className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-lg bg-green-600 text-white hover:bg-green-500 transition-colors">
+        <button
+            onClick={() => onAdd(profile)}
+            aria-label={`Add ${profile.name}`}
+            className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-lg bg-green-600 text-white hover:bg-green-500 transition-colors"
+        >
             +
         </button>
     </div>
