@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback, useTransition, Dispatch, SetStateAction } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import type { Match, Commentary, CommentaryStyle, Player, Team } from '../types';
@@ -34,6 +33,38 @@ const getApiKey = (): string | null => {
 const apiKey = getApiKey();
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
+/**
+ * Generates simple, template-based commentary when the Gemini API is not available.
+ * This provides a graceful fallback for deployed environments.
+ */
+const generateBasicCommentary = (lastBall: any, currentMatchState: Match): string => {
+    const innings = currentMatchState.innings === 1 ? currentMatchState.firstInnings : currentMatchState.secondInnings!;
+    const battingTeam = innings.battingTeam === currentMatchState.teamA.name ? currentMatchState.teamA : currentMatchState.teamB;
+    const striker = battingTeam.players.find(p => p.id === currentMatchState.striker);
+
+    switch (lastBall.type) {
+        case 'run':
+            if (lastBall.runs === 0) return `A dot ball. No run.`;
+            if (lastBall.runs === 1) return `${striker?.name || 'Batsman'} takes a single.`;
+            if (lastBall.runs === 2) return `Good running, they come back for two.`;
+            if (lastBall.runs === 3) return `Three runs taken.`;
+            if (lastBall.runs === 4) return `FOUR! A great shot to the boundary.`;
+            if (lastBall.runs === 6) return `SIX! That's out of the park!`;
+            return `${lastBall.runs} runs scored.`;
+        case 'wicket':
+            return `WICKET! A huge blow for the batting side.`;
+        case 'wide':
+            return `A wide ball. Extra run to the batting side.`;
+        case 'noball':
+            return `No ball! It's a free hit.`;
+        case 'bye':
+            return `${lastBall.runs} bye${lastBall.runs > 1 ? 's' : ''} taken.`;
+        case 'legbye':
+            return `${lastBall.runs} leg bye${lastBall.runs > 1 ? 's' : ''} taken.`;
+        default:
+            return `Ball delivered. Score is ${innings.score}/${innings.wickets}.`;
+    }
+}
 
 interface ScoringInterfaceProps {
   match: Match;
@@ -74,7 +105,7 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
 
   const generateCommentary = useCallback(async (lastBall: any, currentMatchState: Match): Promise<string> => {
     if (!ai) {
-      return "AI commentary is unavailable. API key not configured.";
+      return generateBasicCommentary(lastBall, currentMatchState);
     }
     const { battingTeam, bowlingTeam, score, wickets, overs, balls } = currentMatchState.innings === 1 ? currentMatchState.firstInnings : currentMatchState.secondInnings!;
     const prompt = `
@@ -110,7 +141,7 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
       const lastBall = nextState.innings === 1 ? nextState.firstInnings.timeline.slice(-1)[0] : nextState.secondInnings?.timeline.slice(-1)[0];
       if (lastBall) {
         setIsAiThinking(true);
-        const loadingCommentary: Commentary = { id: Date.now(), text: 'AI is thinking...', type: 'loading' };
+        const loadingCommentary: Commentary = { id: Date.now(), text: 'Generating commentary...', type: 'loading' };
         nextCommentary = [loadingCommentary, ...nextCommentary];
         updateHistory(nextState, nextCommentary);
 
@@ -332,8 +363,8 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
                         AI Commentary Style
                     </h4>
                     {!ai && (
-                        <div className="bg-yellow-900/50 border border-yellow-700 text-yellow-300 text-xs rounded-md p-2 mb-4 text-center">
-                            AI features are disabled. API key is not configured in the environment.
+                        <div className="bg-blue-900/50 border border-blue-700 text-blue-300 text-xs rounded-md p-2 mb-4 text-center">
+                            Basic commentary is active. For advanced AI styles, a Gemini API key must be configured in the environment.
                         </div>
                     )}
                     <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 ${!ai ? 'opacity-50 cursor-not-allowed' : ''}`}>

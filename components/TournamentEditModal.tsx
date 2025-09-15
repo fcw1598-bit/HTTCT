@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import type { Tournament, Team, Player, TournamentFormat, TournamentType } from '../types';
 import Modal from './Modal';
@@ -85,7 +84,10 @@ const TournamentEditModal: React.FC<TournamentEditModalProps> = ({ tournament, o
                         <div>
                             <h5 className="font-bold mb-2">Selected</h5>
                             <div className="space-y-2 p-2 rounded-md bg-cricket-dark h-48 overflow-y-auto">
-                                {selectedTeams.map(t => <TeamListItem key={t.id} team={allTeams.find(at => at.id === t.id)!} onToggle={handleTeamToggle} isSelected />)}
+                                {selectedTeams.map(t => {
+                                    const teamData = allTeams.find(at => at.id === t.id);
+                                    return teamData ? <TeamListItem key={t.id} team={teamData} onToggle={handleTeamToggle} isSelected /> : null;
+                                })}
                             </div>
                         </div>
                         <div>
