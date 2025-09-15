@@ -1,7 +1,9 @@
+
+
 import React, { useState } from 'react';
 import type { Tournament, Team, Player, TournamentFormat, TournamentType } from '../types';
 import Modal from './Modal';
-import { TeamIcon } from './Icons';
+import { TeamIcon, TrophyIcon } from './Icons';
 
 interface TournamentEditModalProps {
     tournament?: Tournament | null;
@@ -47,7 +49,10 @@ const TournamentEditModal: React.FC<TournamentEditModalProps> = ({ tournament, o
     return (
         <Modal isVisible={true} onClose={onClose}>
             <div className="space-y-4 max-h-[80vh] flex flex-col">
-                <h3 className="text-xl font-bold text-cricket-green">{tournament ? 'Edit Tournament' : 'Create New Tournament'}</h3>
+                <h3 className="text-xl font-bold text-cricket-green flex items-center gap-2">
+                    <TrophyIcon className="w-6 h-6"/>
+                    {tournament ? 'Edit Tournament' : 'Create New Tournament'}
+                </h3>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Tournament Name</label>
@@ -79,13 +84,13 @@ const TournamentEditModal: React.FC<TournamentEditModalProps> = ({ tournament, o
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <h5 className="font-bold mb-2">Selected</h5>
-                            <div className="space-y-2 p-2 rounded-md bg-cricket-gray-dark h-48 overflow-y-auto">
+                            <div className="space-y-2 p-2 rounded-md bg-cricket-dark h-48 overflow-y-auto">
                                 {selectedTeams.map(t => <TeamListItem key={t.id} team={allTeams.find(at => at.id === t.id)!} onToggle={handleTeamToggle} isSelected />)}
                             </div>
                         </div>
                         <div>
                             <h5 className="font-bold mb-2">Available</h5>
-                            <div className="space-y-2 p-2 rounded-md bg-cricket-gray-dark h-48 overflow-y-auto">
+                            <div className="space-y-2 p-2 rounded-md bg-cricket-dark h-48 overflow-y-auto">
                                 {unselectedTeams.map(t => <TeamListItem key={t.id} team={t} onToggle={handleTeamToggle} isSelected={false} />)}
                             </div>
                         </div>

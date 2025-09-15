@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Team, FallOfWicket } from '../types';
 import { formatOvers, calculateStrikeRate, calculateEconomy } from '../utils/cricket';
-import { UserCircleIcon } from './Icons';
+import { UserCircleIcon, BatIcon, BallIcon } from './Icons';
 
 interface FullScorecardProps {
   team: Team;
@@ -20,7 +20,9 @@ const FullScorecard: React.FC<FullScorecardProps> = ({ team, fallOfWickets }) =>
   return (
     <div className="space-y-6">
       <div>
-        <h4 className="text-lg font-semibold mb-2 text-cricket-green">Batting</h4>
+        <h4 className="text-lg font-semibold mb-2 text-cricket-green flex items-center gap-2">
+            <BatIcon className="w-6 h-6" /> Batting
+        </h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-cricket-light-gray">
             <thead className="bg-cricket-light-gray/50">
@@ -79,7 +81,9 @@ const FullScorecard: React.FC<FullScorecardProps> = ({ team, fallOfWickets }) =>
       )}
 
       <div>
-        <h4 className="text-lg font-semibold mb-2 text-cricket-green">Bowling</h4>
+        <h4 className="text-lg font-semibold mb-2 text-cricket-green flex items-center gap-2">
+            <BallIcon className="w-6 h-6" /> Bowling
+        </h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-cricket-light-gray">
             <thead className="bg-cricket-light-gray/50">

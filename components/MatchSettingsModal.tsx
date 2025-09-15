@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Match } from '../types';
 import Modal from './Modal';
+import { SettingsIcon } from './Icons';
 
 interface MatchSettingsModalProps {
   isVisible: boolean;
@@ -42,7 +43,10 @@ const MatchSettingsModal: React.FC<MatchSettingsModalProps> = ({ isVisible, onCl
   return (
     <Modal isVisible={isVisible} onClose={onClose}>
         <div className="space-y-6">
-            <h3 className="text-xl font-bold text-cricket-green">Match Settings</h3>
+            <h3 className="text-xl font-bold text-cricket-green flex items-center gap-2">
+                <SettingsIcon className="w-6 h-6" />
+                Match Settings
+            </h3>
             <InputField 
                 label="Total Match Overs" 
                 type="number" 

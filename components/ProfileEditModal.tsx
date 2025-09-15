@@ -61,7 +61,10 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({ profile, onSave, on
     return (
         <Modal isVisible={true} onClose={onClose}>
             <div className="space-y-6">
-                <h3 className="text-xl font-bold text-cricket-green">{profile ? 'Edit Player Profile' : 'Add New Player Profile'}</h3>
+                <h3 className="text-xl font-bold text-cricket-green flex items-center gap-2">
+                    <UserCircleIcon className="w-6 h-6"/>
+                    {profile ? 'Edit Player Profile' : 'Add New Player Profile'}
+                </h3>
                 
                 <div className="flex items-center gap-4">
                     {photoPreview ? (

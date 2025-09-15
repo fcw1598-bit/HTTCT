@@ -69,6 +69,9 @@ export const updateMatchState = (
 
   const originalBattingTeam = match.teamA.name === originalInnings.battingTeam ? match.teamA : match.teamB;
   const originalBowlingTeam = match.teamA.name === originalInnings.bowlingTeam ? match.teamA : match.teamB;
+  
+  const numberOfPlayers = originalBattingTeam.players.length;
+  const maxWickets = numberOfPlayers > 0 ? numberOfPlayers - 1 : 10; // Fallback to 10 for safety
 
   if (input.type === 'wicket_confirm') {
     const outPlayerId = input.outPlayerId!;
@@ -176,13 +179,13 @@ export const updateMatchState = (
 
   let modal;
 
-  if (isWicket && newInnings.wickets < 10) {
+  if (isWicket && newInnings.wickets < maxWickets) {
       const outPlayers = newBattingTeam.players.filter(p => newBattingTeam.battingStats[p.id]?.isOut).map(p => p.id);
       nextState.striker = null;
       return { nextState, modal: { type: 'select_next_batsman', data: { outPlayerId: strikerId, excludeIds: [...outPlayers, newNonStrikerId] } } };
   }
   
-  const inningsOver = newInnings.wickets === 10 || (newInnings.overs === match.overs);
+  const inningsOver = newInnings.wickets === maxWickets || (newInnings.overs === match.overs);
   
   if (inningsOver) {
     if (match.innings === 1) {
@@ -192,7 +195,7 @@ export const updateMatchState = (
       nextState.status = MatchStatus.FINISHED;
       if (newInnings.score > match.firstInnings.score) {
         nextState.winner = newInnings.battingTeam;
-        nextState.resultText = `${nextState.winner} won by ${10 - newInnings.wickets} wickets.`;
+        nextState.resultText = `${nextState.winner} won by ${numberOfPlayers - newInnings.wickets} wickets.`;
       } else if (newInnings.score < match.firstInnings.score) {
         nextState.winner = match.firstInnings.battingTeam;
         nextState.resultText = `${nextState.winner} won by ${match.firstInnings.score - newInnings.score} runs.`;
@@ -204,7 +207,7 @@ export const updateMatchState = (
   } else if (match.innings === 2 && newInnings.score > match.firstInnings.score) {
     nextState.status = MatchStatus.FINISHED;
     nextState.winner = newInnings.battingTeam;
-    nextState.resultText = `${nextState.winner} won by ${10 - newInnings.wickets} wickets.`;
+    nextState.resultText = `${nextState.winner} won by ${numberOfPlayers - newInnings.wickets} wickets.`;
     modal = { type: 'match_finished' };
   } else if (endOfOver) {
     modal = { type: 'select_new_bowler' };

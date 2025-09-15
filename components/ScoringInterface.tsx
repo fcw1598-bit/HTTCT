@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useCallback, useTransition, Dispatch, SetStateAction } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import type { Match, Commentary, CommentaryStyle, Player, Team } from '../types';
@@ -13,11 +15,24 @@ import PlayerSelectionModal from './PlayerSelectionModal';
 import Toss from './Toss';
 import LiveCommentary from './Commentary';
 import { EnthusiasticLogo, HumorousLogo, TechnicalLogo, AnalyticalLogo } from './TeamLogos';
-import { SettingsIcon } from './Icons';
+import { SettingsIcon, RewindIcon, FastForwardIcon, DownloadIcon, ListBulletIcon, ChatBubbleIcon, ColorSwatchIcon, KeyIcon } from './Icons';
 import MatchSettingsModal from './MatchSettingsModal';
 
-// FIX: Initialize GoogleGenAI client as per guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Safely initialize the GoogleGenAI client to prevent crashes in browser environments.
+const getApiKey = (): string | null => {
+  try {
+    // This will throw a ReferenceError in a browser if 'process' is not defined.
+    if (process && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    console.warn("`process.env.API_KEY` not found. AI features will be disabled. This is expected in browser environments without a build process.");
+  }
+  return null;
+};
+
+const apiKey = getApiKey();
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 
 interface ScoringInterfaceProps {
@@ -58,7 +73,9 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
   }
 
   const generateCommentary = useCallback(async (lastBall: any, currentMatchState: Match): Promise<string> => {
-    // FIX: Removed null check for 'ai' instance.
+    if (!ai) {
+      return "AI commentary is unavailable. API key not configured.";
+    }
     const { battingTeam, bowlingTeam, score, wickets, overs, balls } = currentMatchState.innings === 1 ? currentMatchState.firstInnings : currentMatchState.secondInnings!;
     const prompt = `
       You are a ${commentaryStyle} cricket commentator.
@@ -76,6 +93,9 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
       return response.text;
     } catch (error) {
       console.error("Error generating commentary:", error);
+      if (error instanceof Error && error.message.includes('API key not valid')) {
+        return "AI commentary failed: The provided API Key is not valid.";
+      }
       return "An error occurred while generating commentary.";
     }
   }, [commentaryStyle, customKeywords]);
@@ -257,11 +277,11 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
   const bowlingTeamObj = (match.innings === 1 ? match.firstInnings.bowlingTeam : match.secondInnings?.bowlingTeam) === match.teamA.name ? match.teamA : match.teamB;
   const innings = match.innings === 1 ? match.firstInnings : match.secondInnings;
 
-  const ActionButton: React.FC<{ onClick: () => void; disabled?: boolean; children: React.ReactNode, className?: string }> = ({ onClick, disabled = false, children, className = 'bg-gray-700 hover:bg-gray-600' }) => (
+  const ActionButton: React.FC<{ onClick: () => void; disabled?: boolean; children: React.ReactNode; className?: string }> = ({ onClick, disabled = false, children, className = 'bg-gray-700 hover:bg-gray-600' }) => (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 ${className}`}
+      className={`font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 flex items-center gap-2 ${className}`}
     >
       {children}
     </button>
@@ -273,9 +293,9 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
       
       {match.status === MatchStatus.IN_PROGRESS && (
           <div className="flex justify-center items-center space-x-2 md:space-x-4 mb-4">
-            <ActionButton onClick={handleUndo} disabled={historyIndex === 0}>Undo</ActionButton>
-            <ActionButton onClick={handleRedo} disabled={historyIndex >= matchHistory.length - 1}>Redo</ActionButton>
-            <ActionButton onClick={handleExportMatchData} className="bg-blue-600 hover:bg-blue-500">Export Match Data</ActionButton>
+            <ActionButton onClick={handleUndo} disabled={historyIndex === 0}><RewindIcon className="w-5 h-5"/>Undo</ActionButton>
+            <ActionButton onClick={handleRedo} disabled={historyIndex >= matchHistory.length - 1}><FastForwardIcon className="w-5 h-5"/>Redo</ActionButton>
+            <ActionButton onClick={handleExportMatchData} className="bg-blue-600 hover:bg-blue-500"><DownloadIcon className="w-5 h-5"/>Export Data</ActionButton>
             <button
               onClick={() => setIsSettingsModalOpen(true)}
               className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
@@ -289,11 +309,12 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="flex space-x-1 bg-cricket-gray p-1 rounded-lg">
-            {['scorecard', 'commentary'].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab as any)} className={`w-full p-2 rounded-md font-semibold transition-colors ${activeTab === tab ? 'bg-cricket-green text-white' : 'text-gray-300 hover:bg-cricket-light-gray'}`}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
+            <button onClick={() => setActiveTab('scorecard')} className={`w-full p-2 rounded-md font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'scorecard' ? 'bg-cricket-green text-white' : 'text-gray-300 hover:bg-cricket-light-gray'}`}>
+                <ListBulletIcon className="w-5 h-5" /> Scorecard
+            </button>
+            <button onClick={() => setActiveTab('commentary')} className={`w-full p-2 rounded-md font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'commentary' ? 'bg-cricket-green text-white' : 'text-gray-300 hover:bg-cricket-light-gray'}`}>
+                <ChatBubbleIcon className="w-5 h-5" /> Commentary
+            </button>
           </div>
 
           <div className="bg-cricket-gray p-4 rounded-lg shadow-inner min-h-[300px]">
@@ -305,8 +326,11 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
             )}
             {activeTab === 'commentary' && (
               <div>
-                 <div className="bg-cricket-gray-dark p-4 rounded-lg mb-4">
-                    <h4 className="text-lg font-semibold mb-3 text-cricket-green">AI Commentary Style</h4>
+                 <div className="bg-cricket-dark p-4 rounded-lg mb-4">
+                    <h4 className="text-lg font-semibold mb-3 text-cricket-green flex items-center gap-2">
+                        <ColorSwatchIcon className="w-6 h-6" />
+                        AI Commentary Style
+                    </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       {(['Enthusiastic', 'Humorous', 'Technical', 'Analytical'] as CommentaryStyle[]).map(style => {
                         const Logo = { Enthusiastic: EnthusiasticLogo, Humorous: HumorousLogo, Technical: TechnicalLogo, Analytical: AnalyticalLogo }[style];
@@ -318,13 +342,18 @@ const ScoringInterface: React.FC<ScoringInterfaceProps> = ({ match: initialMatch
                         );
                       })}
                     </div>
-                     <input
-                        type="text"
-                        placeholder="Custom keywords (e.g., tense moment, great shot)"
-                        value={customKeywords}
-                        onChange={(e) => setCustomKeywords(e.target.value)}
-                        className="w-full bg-cricket-light-gray border border-gray-600 rounded-md p-2 focus:ring-1 focus:ring-cricket-green text-sm"
-                      />
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <KeyIcon className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Custom keywords (e.g., tense moment, great shot)"
+                            value={customKeywords}
+                            onChange={(e) => setCustomKeywords(e.target.value)}
+                            className="w-full bg-cricket-light-gray border border-gray-600 rounded-md p-2 pl-10 focus:ring-1 focus:ring-cricket-green text-sm"
+                        />
+                    </div>
                 </div>
                 <LiveCommentary commentary={commentary} />
               </div>

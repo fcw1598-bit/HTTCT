@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { PlayerProfile } from '../types';
 import { getPlayerProfiles, savePlayerProfiles } from '../utils/storage';
 import ProfileEditModal from './ProfileEditModal';
-import { UserCircleIcon } from './Icons';
+import { UserCircleIcon, UsersIcon, UserAddIcon } from './Icons';
 
 const PlayerProfilesDashboard: React.FC = () => {
     const [profiles, setProfiles] = useState<PlayerProfile[]>([]);
@@ -47,11 +47,15 @@ const PlayerProfilesDashboard: React.FC = () => {
     return (
         <div className="bg-cricket-gray p-6 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-cricket-green">Player Profiles</h2>
+                <h2 className="text-3xl font-bold text-cricket-green flex items-center gap-3">
+                    <UsersIcon className="w-8 h-8" />
+                    Player Profiles
+                </h2>
                 <button
                     onClick={handleAddNew}
-                    className="bg-cricket-green text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition"
+                    className="bg-cricket-green text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition flex items-center gap-2"
                 >
+                    <UserAddIcon className="w-5 h-5"/>
                     Add New Player
                 </button>
             </div>

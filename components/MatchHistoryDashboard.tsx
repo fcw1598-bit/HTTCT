@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Match } from '../types';
 import { getMatchHistory, saveMatchHistory } from '../utils/storage';
 import MatchDetailModal from './MatchDetailModal';
-import { TrashIcon, EyeIcon, TeamIcon } from './Icons';
+import { TrashIcon, EyeIcon, TeamIcon, ArchiveIcon } from './Icons';
 
 const MatchHistoryDashboard: React.FC = () => {
     const [matches, setMatches] = useState<Match[]>([]);
@@ -34,7 +34,10 @@ const MatchHistoryDashboard: React.FC = () => {
 
     return (
         <div className="bg-cricket-gray p-6 rounded-lg shadow-lg">
-            <h2 className="text-3xl font-bold text-cricket-green mb-6">Match History</h2>
+            <h2 className="text-3xl font-bold text-cricket-green mb-6 flex items-center gap-3">
+                <ArchiveIcon className="w-8 h-8" />
+                Match History
+            </h2>
             <div className="space-y-4">
                 {matches.map((match, index) => {
                     const firstInningsBattingTeam = match.teamA.name === match.firstInnings.battingTeam ? match.teamA : match.teamB;

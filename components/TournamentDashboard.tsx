@@ -4,7 +4,7 @@ import { getTournaments, saveTournaments, getRegisteredTeams, getMatchHistory } 
 import { calculateStandings, generateInitialRound, advanceToNextRound } from '../utils/tournament';
 import { MatchStatus } from '../types';
 import TournamentEditModal from './TournamentEditModal';
-import { TeamIcon, TrophyIcon } from './Icons';
+import { TeamIcon, TrophyIcon, TableIcon, FlagIcon, PlusCircleIcon } from './Icons';
 
 interface Matchup {
   teamAId: string;
@@ -115,7 +115,8 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onStartMatch 
                 <TrophyIcon className="w-16 h-16 mx-auto text-gray-500 mb-4" />
                 <h2 className="text-2xl font-bold text-white">No Tournaments Found</h2>
                 <p className="text-gray-400 mt-2 mb-6">Create a tournament to get started.</p>
-                <button onClick={() => { setEditingTournament(null); setIsModalOpen(true); }} className="bg-cricket-green text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transition">
+                <button onClick={() => { setEditingTournament(null); setIsModalOpen(true); }} className="bg-cricket-green text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 mx-auto">
+                    <PlusCircleIcon className="w-6 h-6"/>
                     Create New Tournament
                 </button>
             </div>
@@ -126,7 +127,10 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onStartMatch 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="md:col-span-1 bg-cricket-gray p-4 rounded-lg shadow-lg">
                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-cricket-green">Tournaments</h3>
+                    <h3 className="text-xl font-bold text-cricket-green flex items-center gap-2">
+                        <TrophyIcon className="w-6 h-6"/>
+                        Tournaments
+                    </h3>
                     <button onClick={() => { setEditingTournament(null); setIsModalOpen(true); }} className="bg-green-600/50 text-white font-bold text-lg w-8 h-8 rounded-full hover:bg-green-500 transition">+</button>
                 </div>
                 <ul className="space-y-2">
@@ -204,8 +208,11 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({ tournament, allTe
         <div className="space-y-6 animate-fade-in">
             <div className="flex justify-between items-start">
                 <div>
-                    <h2 className="text-3xl font-bold text-cricket-green">{tournament.name}</h2>
-                    <p className="text-gray-400">{tournament.format} | {tournament.type} | {tournament.status}</p>
+                    <h2 className="text-3xl font-bold text-cricket-green flex items-center gap-3">
+                        <TrophyIcon className="w-8 h-8"/>
+                        {tournament.name}
+                    </h2>
+                    <p className="text-gray-400 ml-11">{tournament.format} | {tournament.type} | {tournament.status}</p>
                 </div>
                  <div className="flex gap-2">
                     {tournament.status === 'Upcoming' && <button onClick={onEdit} className="text-sm bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-blue-500 transition">Edit</button>}
@@ -227,7 +234,10 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({ tournament, allTe
 
             {tournament.status === 'In Progress' && currentRound && (
                 <div>
-                    <h3 className="text-2xl font-bold mb-4 text-center">{currentRound.name}</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-center flex items-center justify-center gap-3">
+                        <FlagIcon className="w-7 h-7" />
+                        {currentRound.name}
+                    </h3>
                     <div className="space-y-3">
                         {currentRound.matchIds.map(matchId => {
                             const match = allMatches.find(m => m.id === matchId);
@@ -276,7 +286,8 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({ tournament, allTe
                         })}
                     </div>
 
-                    {isRoundComplete && tournament.type === 'Knockout' && tournament.status !== 'Finished' && (
+                    {/* FIX: Removed redundant `tournament.status !== 'Finished'` check which is always true inside this block and can cause type errors. */}
+                    {isRoundComplete && tournament.type === 'Knockout' && (
                         <div className="text-center mt-6">
                             <button onClick={() => onAdvanceRound(tournament.id)} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-500 transition">
                                 Advance to Next Round
@@ -301,7 +312,10 @@ const StandingsTable: React.FC<{ standings: TeamStanding[], allTeams: Team[] }> 
     const getTeam = (teamId: string) => allTeams.find(t => t.id === teamId);
     return (
         <div>
-            <h3 className="text-2xl font-bold mb-4 text-center">Points Table</h3>
+            <h3 className="text-2xl font-bold mb-4 text-center flex items-center justify-center gap-3">
+                <TableIcon className="w-7 h-7" />
+                Points Table
+            </h3>
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-cricket-light-gray">
                     <thead className="bg-cricket-light-gray/50">

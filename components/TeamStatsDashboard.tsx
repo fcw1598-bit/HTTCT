@@ -1,10 +1,14 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Match, TeamStats } from '../types';
 import { getMatchHistory } from '../utils/storage';
 import { calculateTeamStats } from '../utils/stats';
+import { TeamIcon, ChartBarIcon, UsersIcon, CalendarIcon, HashtagIcon, TrophyIcon, XCircleIcon, TrendingUpIcon, UserGroupIcon } from './Icons';
 
-const TeamStatsDashboard: React.FC = () => {
+interface TeamStatsDashboardProps {
+    initialSelectedTeam?: string | null;
+}
+
+const TeamStatsDashboard: React.FC<TeamStatsDashboardProps> = ({ initialSelectedTeam = null }) => {
     const [history, setHistory] = useState<Match[]>([]);
     const [teams, setTeams] = useState<string[]>([]);
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
@@ -21,10 +25,13 @@ const TeamStatsDashboard: React.FC = () => {
         });
         const sortedTeams = Array.from(teamNames).sort();
         setTeams(sortedTeams);
-        if (sortedTeams.length > 0) {
+        
+        if (initialSelectedTeam && sortedTeams.includes(initialSelectedTeam)) {
+            setSelectedTeam(initialSelectedTeam);
+        } else if (sortedTeams.length > 0) {
             setSelectedTeam(sortedTeams[0]);
         }
-    }, []);
+    }, [initialSelectedTeam]);
 
     const selectedTeamStats = useMemo<TeamStats | null>(() => {
         if (!selectedTeam) return null;
@@ -43,7 +50,10 @@ const TeamStatsDashboard: React.FC = () => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="md:col-span-1 bg-cricket-gray p-4 rounded-lg shadow-lg">
-                <h3 className="text-xl font-bold mb-4 text-cricket-green">Registered Teams</h3>
+                <h3 className="text-xl font-bold mb-4 text-cricket-green flex items-center gap-2">
+                    <TeamIcon className="w-6 h-6" />
+                    Registered Teams
+                </h3>
                 <ul className="space-y-2">
                     {teams.map(team => (
                         <li key={team}>
@@ -86,10 +96,13 @@ const TeamStatsDetails: React.FC<TeamStatsDetailsProps> = ({ stats, teamName, hi
         return history.filter(match => match.teamA.name === teamName || match.teamB.name === teamName);
     }, [teamName, history]);
 
-    const StatCard: React.FC<{ label: string; value: string | number | null; delay?: number }> = ({ label, value, delay = 0 }) => (
-        <div className="bg-cricket-light-gray p-4 rounded-lg text-center shadow-md animate-fade-in-up" style={{ animationDelay: `${delay}ms`}}>
-            <p className="text-sm text-gray-400 font-medium uppercase tracking-wider">{label}</p>
-            <p className="text-3xl font-bold text-white mt-1">{value ?? 'N/A'}</p>
+    const StatCard: React.FC<{ label: string; value: string | number | null; icon: React.ReactNode; delay?: number }> = ({ label, value, icon, delay = 0 }) => (
+        <div className="bg-cricket-light-gray p-4 rounded-lg shadow-md animate-fade-in-up" style={{ animationDelay: `${delay}ms`}}>
+            <div className="flex justify-between items-start">
+                <p className="text-sm text-gray-400 font-medium uppercase tracking-wider">{label}</p>
+                <div className="text-gray-500">{icon}</div>
+            </div>
+            <p className="text-3xl font-bold text-white mt-2 text-left">{value ?? 'N/A'}</p>
         </div>
     );
 
@@ -102,28 +115,37 @@ const TeamStatsDetails: React.FC<TeamStatsDetailsProps> = ({ stats, teamName, hi
     return (
         <div className="space-y-8" key={teamName}>
             <div>
-                <h2 className="text-3xl font-bold mb-6 text-center text-cricket-green animate-fade-in-up">{stats.name} - Performance</h2>
+                <h2 className="text-3xl font-bold mb-6 text-center text-cricket-green animate-fade-in-up flex items-center justify-center gap-3">
+                    <ChartBarIcon className="w-8 h-8"/>
+                    {stats.name} - Performance
+                </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <StatCard label="Matches" value={stats.matchesPlayed} delay={100} />
-                    <StatCard label="Wins" value={stats.wins} delay={200} />
-                    <StatCard label="Losses" value={stats.losses} delay={300} />
-                    <StatCard label="Win %" value={`${stats.winPercentage}%`} delay={400} />
+                    <StatCard label="Matches" value={stats.matchesPlayed} icon={<HashtagIcon className="w-6 h-6"/>} delay={100} />
+                    <StatCard label="Wins" value={stats.wins} icon={<TrophyIcon className="w-6 h-6"/>} delay={200} />
+                    <StatCard label="Losses" value={stats.losses} icon={<XCircleIcon className="w-6 h-6"/>} delay={300} />
+                    <StatCard label="Win %" value={`${stats.winPercentage}%`} icon={<span className="font-bold text-xl">%</span>} delay={400} />
                     <div className="col-span-2 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-                       <StatCard label="Avg. Score" value={stats.averageRunsScored} />
+                       <StatCard label="Avg. Score" value={stats.averageRunsScored} icon={<TrendingUpIcon className="w-6 h-6"/>} />
                     </div>
                      <div className="col-span-2 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-                       <StatCard label="NEMESIS" value={stats.mostFrequentOpponent} />
+                       <StatCard label="NEMESIS" value={stats.mostFrequentOpponent} icon={<UserGroupIcon className="w-6 h-6"/>} />
                     </div>
                 </div>
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
-                <h3 className="text-2xl font-bold mb-4 text-center text-cricket-green">Role Performance Breakdown</h3>
+                <h3 className="text-2xl font-bold mb-4 text-center text-cricket-green flex items-center justify-center gap-3">
+                    <UsersIcon className="w-7 h-7" />
+                    Role Performance
+                </h3>
                 <RolePerformanceChart data={chartData} />
             </div>
 
             <div className="animate-fade-in-up" style={{ animationDelay: '800ms' }}>
-                <h3 className="text-2xl font-bold mb-4 text-center text-cricket-green">Recent Matches</h3>
+                <h3 className="text-2xl font-bold mb-4 text-center text-cricket-green flex items-center justify-center gap-3">
+                    <CalendarIcon className="w-7 h-7" />
+                    Recent Matches
+                </h3>
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                     {teamMatchHistory.map((match, index) => {
                         const myTeamObj = match.teamA.name === teamName ? match.teamA : match.teamB;

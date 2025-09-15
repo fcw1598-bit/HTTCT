@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import type { Match, Team, PlayerRole, Player } from '../types';
 import { MatchStatus } from '../types';
 import { getRegisteredTeams } from '../utils/storage';
-import { TeamIcon } from './Icons';
+// FIX: Import 'PlayIcon' from './Icons' to resolve the 'Cannot find name' error.
+import { TeamIcon, ClipboardListIcon, BallIcon, UserAddIcon, PlayIcon } from './Icons';
 import { CustomSelect, type CustomSelectOption } from './Modal';
 
 interface Matchup {
@@ -21,14 +22,16 @@ interface MatchSetupProps {
 const PLAYER_ROLES: PlayerRole[] = ['Batsman', 'Bowler', 'All-Rounder', 'Wicket-Keeper'];
 interface CustomPlayer { name: string; role: PlayerRole; }
 const createDefaultPlayer = (): CustomPlayer => ({ name: '', role: 'Batsman' });
-const createInitialCustomTeam = () => ({ name: '', players: Array(11).fill(null).map(createDefaultPlayer) });
+const createInitialCustomTeam = () => ({ name: '', players: Array(6).fill(null).map(createDefaultPlayer) });
 
 // Sub-component for custom team input form
 const CustomTeamForm: React.FC<{
   teamData: { name: string; players: CustomPlayer[] };
   onTeamNameChange: (name: string) => void;
   onPlayerChange: (index: number, player: CustomPlayer) => void;
-}> = ({ teamData, onTeamNameChange, onPlayerChange }) => (
+  onAddPlayer: () => void;
+  onRemovePlayer: () => void;
+}> = ({ teamData, onTeamNameChange, onPlayerChange, onAddPlayer, onRemovePlayer }) => (
     <div className="mt-4 p-4 border border-cricket-light-gray rounded-lg space-y-4 bg-cricket-dark/30 animate-fade-in">
         <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Custom Team Name</label>
@@ -40,7 +43,10 @@ const CustomTeamForm: React.FC<{
                 className="w-full bg-cricket-light-gray border border-gray-600 rounded-md p-2 text-white"
             />
         </div>
-        <h4 className="text-md font-semibold text-gray-300 pt-2">Enter 11 Player Details</h4>
+        <h4 className="text-md font-semibold text-gray-300 pt-2 flex items-center gap-2">
+            <UserAddIcon className="w-5 h-5" />
+            Enter {teamData.players.length} Player Details
+        </h4>
         <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
             {teamData.players.map((player, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
@@ -60,6 +66,22 @@ const CustomTeamForm: React.FC<{
                     </select>
                 </div>
             ))}
+        </div>
+        <div className="flex justify-end gap-2 mt-2">
+            <button
+                onClick={onRemovePlayer}
+                disabled={teamData.players.length <= 6}
+                className="text-sm bg-red-600 text-white font-semibold py-1 px-3 rounded-md hover:bg-red-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition"
+            >
+                - Remove Player
+            </button>
+            <button
+                onClick={onAddPlayer}
+                disabled={teamData.players.length >= 15}
+                className="text-sm bg-green-600 text-white font-semibold py-1 px-3 rounded-md hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition"
+            >
+                + Add Player
+            </button>
         </div>
         <style>{`
             @keyframes fade-in {
@@ -93,6 +115,20 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
       setOvers(prefilledMatchup.overs);
     }
   }, [prefilledMatchup]);
+  
+  const handleAddPlayer = (teamSetter: React.Dispatch<React.SetStateAction<{ name: string; players: CustomPlayer[]; }>>) => {
+      teamSetter(prev => ({
+          ...prev,
+          players: [...prev.players, createDefaultPlayer()]
+      }));
+  };
+
+  const handleRemovePlayer = (teamSetter: React.Dispatch<React.SetStateAction<{ name: string; players: CustomPlayer[]; }>>) => {
+      teamSetter(prev => ({
+          ...prev,
+          players: prev.players.slice(0, -1)
+      }));
+  };
 
   const handleStartMatch = () => {
     setError('');
@@ -125,24 +161,28 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
     // Process Team A
     if (teamAId === 'custom') {
         if (!customTeamA.name.trim()) return setError('Custom Team A needs a name.');
-        if (customTeamA.players.some(p => !p.name.trim())) return setError('All 11 players for Custom Team A must have a name.');
+        if (customTeamA.players.length < 6) return setError('Custom Team A must have at least 6 players.');
+        if (customTeamA.players.length > 15) return setError('Custom Team A cannot have more than 15 players.');
+        if (customTeamA.players.some(p => !p.name.trim())) return setError(`All ${customTeamA.players.length} players for Custom Team A must have a name.`);
         teamA = createCustomTeamObject(customTeamA);
     } else {
         teamA = teams.find(t => t.id === teamAId);
-        if (teamA && teamA.players.length < 11) {
-            return setError(`Registered team "${teamA.name}" is incomplete. It has ${teamA.players.length}/11 players. Please edit the team in "Manage Teams".`);
+        if (teamA && (teamA.players.length < 6 || teamA.players.length > 15)) {
+            return setError(`Registered team "${teamA.name}" has ${teamA.players.length} players. Teams must have between 6 and 15 players.`);
         }
     }
 
     // Process Team B
     if (teamBId === 'custom') {
         if (!customTeamB.name.trim()) return setError('Custom Team B needs a name.');
-        if (customTeamB.players.some(p => !p.name.trim())) return setError('All 11 players for Custom Team B must have a name.');
+        if (customTeamB.players.length < 6) return setError('Custom Team B must have at least 6 players.');
+        if (customTeamB.players.length > 15) return setError('Custom Team B cannot have more than 15 players.');
+        if (customTeamB.players.some(p => !p.name.trim())) return setError(`All ${customTeamB.players.length} players for Custom Team B must have a name.`);
         teamB = createCustomTeamObject(customTeamB);
     } else {
         teamB = teams.find(t => t.id === teamBId);
-        if (teamB && teamB.players.length < 11) {
-            return setError(`Registered team "${teamB.name}" is incomplete. It has ${teamB.players.length}/11 players. Please edit the team in "Manage Teams".`);
+        if (teamB && (teamB.players.length < 6 || teamB.players.length > 15)) {
+            return setError(`Registered team "${teamB.name}" has ${teamB.players.length} players. Teams must have between 6 and 15 players.`);
         }
     }
 
@@ -150,7 +190,8 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
     if (!teamA || !teamB) return setError('Please select both teams.');
     if (teamAId !== 'custom' && teamAId === teamBId) return setError('Please select two different registered teams.');
     if (teamA.name === teamB.name) return setError('Team names must be unique, even for custom teams.');
-    if (overs <= 0) return setError('Number of overs must be greater than 0.');
+    if (teamA.players.length !== teamB.players.length) return setError(`Teams must have the same number of players. ${teamA.name} has ${teamA.players.length}, and ${teamB.name} has ${teamB.players.length}.`);
+    if (overs < 6) return setError('Number of overs must be at least 6.');
 
     const initialMatch: Match = {
       id: prefilledMatchup?.matchId || `match_${new Date().toISOString()}`,
@@ -179,16 +220,19 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
         id: team.id,
         name: team.name,
         image: team.logo,
-        description: `${team.players.length} player${team.players.length !== 1 ? 's' : ''}${team.players.length < 11 ? ' ⚠️' : ''}`
+        description: `${team.players.length} player${team.players.length !== 1 ? 's' : ''}${(team.players.length < 6 || team.players.length > 15) ? ' ⚠️' : ''}`
     }))
   ];
 
   return (
     <div className="bg-cricket-gray p-6 md:p-8 rounded-lg shadow-xl max-w-4xl mx-auto animate-fade-in-up">
-      <h2 className="text-3xl font-bold mb-2 text-center text-cricket-green">Setup New Match</h2>
+      <h2 className="text-3xl font-bold mb-2 text-center text-cricket-green flex items-center justify-center gap-3">
+        <ClipboardListIcon className="w-8 h-8"/>
+        Setup New Match
+      </h2>
       {isTournamentMatch && <p className="text-center text-yellow-400 mb-6 font-semibold">This is a tournament match.</p>}
       
-      <div className="flex justify-around items-center mb-6 bg-cricket-dark/30 p-4 rounded-lg">
+      <div className="flex justify-around items-center my-6 bg-cricket-dark/30 p-4 rounded-lg">
           <TeamDisplay team={selectedTeamA} customName={teamAId === 'custom' ? customTeamA.name : undefined} />
           <span className="text-2xl font-bold text-gray-500">VS</span>
           <TeamDisplay team={selectedTeamB} customName={teamBId === 'custom' ? customTeamB.name : undefined} />
@@ -198,7 +242,10 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Team A Selection */}
         <div>
-          <label htmlFor="teamA" className="block text-sm font-medium text-gray-300 mb-1">Team A</label>
+          <label htmlFor="teamA" className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-1">
+            <TeamIcon className="w-5 h-5"/>
+            Team A
+          </label>
            <CustomSelect
             placeholder="Select Team A"
             options={teamOptions.filter(t => t.id !== teamBId || t.id === 'custom')}
@@ -215,13 +262,18 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
                       newPlayers[index] = player;
                       setCustomTeamA(prev => ({ ...prev, players: newPlayers }));
                   }}
+                  onAddPlayer={() => handleAddPlayer(setCustomTeamA)}
+                  onRemovePlayer={() => handleRemovePlayer(setCustomTeamA)}
               />
           )}
         </div>
         
         {/* Team B Selection */}
         <div>
-          <label htmlFor="teamB" className="block text-sm font-medium text-gray-300 mb-1">Team B</label>
+          <label htmlFor="teamB" className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-1">
+            <TeamIcon className="w-5 h-5"/>
+            Team B
+          </label>
           <CustomSelect
             placeholder="Select Team B"
             options={teamOptions.filter(t => t.id !== teamAId || t.id === 'custom')}
@@ -238,15 +290,20 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
                       newPlayers[index] = player;
                       setCustomTeamB(prev => ({ ...prev, players: newPlayers }));
                   }}
+                  onAddPlayer={() => handleAddPlayer(setCustomTeamB)}
+                  onRemovePlayer={() => handleRemovePlayer(setCustomTeamB)}
               />
           )}
         </div>
 
         {/* Overs Input */}
         <div className="md:col-span-2">
-          <label htmlFor="overs" className="block text-sm font-medium text-gray-300 mb-1">Overs</label>
+          <label htmlFor="overs" className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-1">
+            <BallIcon className="w-5 h-5"/>
+            Overs
+          </label>
           <input
-            type="number" id="overs" value={overs} onChange={(e) => setOvers(parseInt(e.target.value, 10))} min="1"
+            type="number" id="overs" value={overs} onChange={(e) => setOvers(parseInt(e.target.value, 10))} min="6"
             className="w-full bg-cricket-light-gray border border-gray-600 rounded-md p-3 text-white focus:ring-1 focus:ring-cricket-green"
             disabled={isTournamentMatch}
           />
@@ -255,8 +312,9 @@ const MatchSetup: React.FC<MatchSetupProps> = ({ onMatchSetupComplete, prefilled
         <div className="md:col-span-2">
           <button
             onClick={handleStartMatch}
-            className="w-full bg-cricket-green text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition transform hover:scale-105"
+            className="w-full bg-cricket-green text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition transform hover:scale-105 flex items-center justify-center gap-2"
           >
+            <PlayIcon className="w-6 h-6"/>
             Start Match & Proceed to Toss
           </button>
         </div>

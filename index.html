@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,10 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Live Cricket Scorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @font-face {
+        font-family: 'Rusty Attack';
+        src: url('https://all-fonts.com/wp-content/uploads/2023/11/Rusty-Attack.ttf.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+      }
+    </style>
     <script>
       tailwind.config = {
         theme: {
           extend: {
+            fontFamily: {
+              'rusty': ['Rusty Attack', 'sans-serif'],
+            },
             colors: {
               'cricket-green': '#28a745',
               'cricket-dark': '#1a202c',
@@ -59,13 +69,15 @@
     "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react": "https://aistudiocdn.com/react@^19.1.1",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.1.1",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.19.0"
   }
 }
 </script>
 </head>
-  <body class="bg-cricket-dark text-white font-sans">
+  <body class="bg-cricket-dark text-white font-rusty tracking-wide">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

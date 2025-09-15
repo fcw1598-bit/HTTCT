@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Team } from '../types';
 import { getRegisteredTeams, saveRegisteredTeams } from '../utils/storage';
 import TeamEditModal from './TeamEditModal';
-import { TeamIcon } from './Icons';
+import { TeamIcon, ShieldCheckIcon, PlusCircleIcon } from './Icons';
 
 const TeamRegistrationDashboard: React.FC = () => {
     const [teams, setTeams] = useState<Team[]>([]);
@@ -54,11 +54,15 @@ const TeamRegistrationDashboard: React.FC = () => {
     return (
         <div className="bg-cricket-gray p-6 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-cricket-green">Manage Teams</h2>
+                <h2 className="text-3xl font-bold text-cricket-green flex items-center gap-3">
+                    <ShieldCheckIcon className="w-8 h-8" />
+                    Manage Teams
+                </h2>
                 <button
                     onClick={handleAddNew}
-                    className="bg-cricket-green text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition"
+                    className="bg-cricket-green text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition flex items-center gap-2"
                 >
+                    <PlusCircleIcon className="w-6 h-6" />
                     Register New Team
                 </button>
             </div>
@@ -76,7 +80,10 @@ const TeamRegistrationDashboard: React.FC = () => {
                                 )}
                                 <div>
                                     <h3 className="text-xl font-bold">{team.name}</h3>
-                                    <p className="text-sm text-gray-400">{team.players.length} player{team.players.length !== 1 ? 's' : ''}</p>
+                                    <p className="text-sm text-gray-400">
+                                        {team.players.length} player{team.players.length !== 1 ? 's' : ''}
+                                        {(team.players.length < 6 || team.players.length > 15) && <span className="text-yellow-400 ml-2">⚠️</span>}
+                                    </p>
                                 </div>
                             </div>
                             <div className="space-x-4">
